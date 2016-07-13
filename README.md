@@ -17,7 +17,7 @@ TO-DO LIST
 - [ ] Secure login data with sudo access only
 - [ ] Provide this as a gem
 
-USING CHEM-EQN
+USING NOTIFICATOR
 -----------------
 Type these commands on a terminal - 
 <br> (1)  `git clone git@github.com:athityakumar/ruby-notificator.git`
