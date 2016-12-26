@@ -2,45 +2,52 @@ require_relative 'github_helper'
 
 def github()
   while (true)
-  begin
-    github_client = github_login()
-    puts "\nGithub Notifier\n"
-    puts "\nSigned in, as #{github_client.user.name}.\n"
-    github_client.auto_paginate = true
-    break
-  rescue
-    puts "Authentication failure. Please try again..."
-    require 'fileutils'
     begin
-      FileUtils.remove_dir("secrets")
-    rescue
-      print ""
-    end
-  end
-  end
-tot=github_client.user[:followers]
-flist=[]; count=0
-File.open('data/github.txt', 'r') do |f1|  
-while line = f1.gets
-flist[count]=line
-count+=1
-end
-end
-
-count=0
-puts "\nNew followers:"
-myfile=File.new('data/github.txt',"w")
-while(count<tot)
-  begin
-    usernow=github_client.followers(github_client.user[:login])[count][:login]
-    if (flist.include?usernow+"\n")
-    else
-      puts usernow
-    end
-    myfile.puts(usernow)
+      userdetails=["",""]
+      github_client = github_login(userdetails)
+      uid=userdetails[0]
+      pwd=userdetails[1]
+      puts "\nGithub Notifier\n"
+      puts "\nSigned in, as #{github_client.user.name}.\n"
+      github_client.auto_paginate = true
+      break
   rescue
-    break
+      puts "Authentication failure.\nCheck your password and your connection. Please try again..."
+      require 'fileutils'
+      begin
+        FileUtils.remove_dir("secrets")
+      rescue
+        print ""
+      end
+    end
   end
-  count+=1
-end
+  require 'fileutils'
+  FileUtils::mkdir_p 'data'
+  begin
+    json = File.read('data/githubfol.json')
+    oldobj = JSON.parse(json)
+  rescue
+    oldobj=[]
+  end
+  system ("curl -u \""+uid+":"+pwd+"\" https://api.github.com/user/followers -o data/githubfol.json")
+
+  json = File.read('data/githubfol.json')
+  obj = JSON.parse(json)
+
+  system('clear')
+  if (oldobj & obj != obj)
+    puts "You have new followers:\n\n"
+  else
+    puts "You have no new followers."
+  end
+  newobj = obj - oldobj | oldobj - obj
+  count=0
+  while(1)
+    begin
+      puts newobj[count]['login']
+      count+=1
+    rescue
+      break
+    end
+  end
 end

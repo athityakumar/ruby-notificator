@@ -2,7 +2,7 @@ require 'json'
 require 'octokit'
 require 'io/console'
 
-def github_login()
+def github_login(a)
   begin
         credentials=[]; count=0
         File.open('secrets/github.txt', 'r') do |f1|  
@@ -32,8 +32,8 @@ def github_login()
         end
   end
   Octokit.configure do |c|
-    c.login = credentials[0][0,(credentials[0].length)-1]
-    c.password = credentials[1][0,(credentials[1].length)-1]
+    c.login = a[0]=credentials[0][0,(credentials[0].length)-1]
+    c.password = a[1]=credentials[1][0,(credentials[1].length)-1]
   end
 
   return Octokit
