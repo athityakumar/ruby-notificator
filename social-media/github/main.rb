@@ -7,8 +7,6 @@ def github()
       github_client = github_login(userdetails)
       uid=userdetails[0]
       pwd=userdetails[1]
-      puts "\nGithub Notifier\n"
-      puts "\nSigned in, as #{github_client.user.name}.\n"
       github_client.auto_paginate = true
       break
   rescue
@@ -26,6 +24,7 @@ def github()
   FileUtils::mkdir_p 'data/github' 
   FileUtils::mkdir_p 'data/github/stars'
   FileUtils::mkdir_p 'data/github/forks'
+  FileUtils::mkdir_p 'data/github/pulls'
   begin
     json = File.read('data/github/followers.json')
     oldfoll = JSON.parse(json)
@@ -38,9 +37,14 @@ def github()
   rescue
    oldissues=[]
   end
-  puts "\nProcessing: "
+  system("clear")
+  puts "\nGithub Notifier\n\nSigned in, as #{github_client.user.name}.\n\nProcessing: 0% complete"
   system ("curl -u \""+uid+":"+pwd+"\" https://api.github.com/user/repos -o data/github/repos.json")
+  system("clear")
+  puts "\nGithub Notifier\n\nSigned in, as #{github_client.user.name}.\n\nProcessing: 0% complete"
   system ("curl -u \""+uid+":"+pwd+"\" https://api.github.com/user/followers -o data/github/followers.json")
+  system("clear")
+  puts "\nGithub Notifier\n\nSigned in, as #{github_client.user.name}.\n\nProcessing: 0% complete"
   system ("curl -u \""+uid+":"+pwd+"\" https://api.github.com/issues -o data/github/issues.json")
   json = File.read('data/github/followers.json')
   foll = JSON.parse(json)
@@ -49,24 +53,30 @@ def github()
   json = File.read('data/github/repos.json')
   repos = JSON.parse(json)
 
-  count=0
+  totcount=0
   repoarr=[]
   while(1)
     begin
-      repoarr[count]=repos[count]['full_name']
-      count+=1
+      repoarr[totcount]=repos[totcount]['full_name']
+      totcount+=1
     rescue
       break
     end
   end
-  disp_stars=""; disp_forks=""
+  totcount*=3
+  disp_stars=""; disp_forks=""; disp_pulls=""
 
-
-  countout=0
+  countnow=-1;  countout=0
   while(1)
     begin
       text=(repoarr[countout].split('/'))[1]
       name=(repoarr[countout].split('/'))[0]
+      begin
+        json = File.read("data/github/pulls/"+name+"-"+text+".json")
+        oldpulls = JSON.parse(json)
+      rescue
+        oldpulls=[]
+      end
       begin
         json = File.read("data/github/stars/"+name+"-"+text+".json")
         oldstars = JSON.parse(json)
@@ -79,12 +89,44 @@ def github()
       rescue
         oldforks=[]
       end
+      system("clear"); countnow+=1
+      print "\nGithub Notifier\n\nSigned in, as #{github_client.user.name}.\n\nProcessing: "
+      print countnow*100/totcount
+      puts "% complete..."
       system ("curl -u \""+uid+":"+pwd+"\" https://api.github.com/repos/"+name+"/"+text+"/stargazers -o data/github/stars/"+name+"-"+text+".json")
+      system("clear"); countnow+=1
+      print "\nGithub Notifier\n\nSigned in, as #{github_client.user.name}.\n\nProcessing: "
+      print countnow*100/totcount
+      puts "% complete..."
       system ("curl -u \""+uid+":"+pwd+"\" https://api.github.com/repos/"+name+"/"+text+"/forks -o data/github/forks/"+name+"-"+text+".json")
+      system("clear"); countnow+=1
+      print "\nGithub Notifier\n\nSigned in, as #{github_client.user.name}.\n\nProcessing: "
+      print countnow*100/totcount
+      puts "% complete..."
+      system ("curl -u \""+uid+":"+pwd+"\" https://api.github.com/repos/"+name+"/"+text+"/pulls -o data/github/pulls/"+name+"-"+text+".json")      
+      json = File.read('data/github/pulls/'+name+"-"+text+'.json')
+      pulls = JSON.parse(json)      
       json = File.read('data/github/stars/'+name+"-"+text+'.json')
       stars = JSON.parse(json)
       json = File.read('data/github/forks/'+name+"-"+text+'.json')
       forks = JSON.parse(json)
+
+      newpulls= oldpulls - pulls | pulls-oldpulls
+      count=0
+      while(1)
+        begin
+          disp_pulls=disp_pulls+newpulls[count]['title']+" at "+text+" by "+name+" created by "+newpulls[count]['user']['login']
+          if (oldpulls == [])
+            disp_pulls=disp_pulls+" *NEW\n"
+          else
+            disp_pulls=disp_pulls+"\n"
+          end
+          count+=1
+        rescue
+          break
+        end
+      end
+
 
       newstars=oldstars - stars | stars-oldstars
       count=0
@@ -107,7 +149,6 @@ def github()
           break
         end
       end
-
       countout+=1
     rescue
       break
@@ -115,6 +156,13 @@ def github()
   end
 
   system('clear')
+  if (disp_pulls=="")
+    puts "You have no new updates pull requests."
+  else
+    puts "\nYou have new updates in your pull requests: "
+    puts "\n"+disp_pulls
+  end
+
   if (disp_forks=="")
     puts "You have no new forkers."
   else
@@ -122,7 +170,7 @@ def github()
     puts "\n"+disp_forks
   end
 
-    if (disp_forks=="")
+    if (disp_stars=="")
     puts "You have no new stargazers."
   else
     puts "\nYou have new stargazers: "
