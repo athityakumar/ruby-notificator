@@ -23,28 +23,79 @@ def github()
   end
   require 'fileutils'
   FileUtils::mkdir_p 'data'
+   FileUtils::mkdir_p 'data/github' 
   begin
-    json = File.read('data/githubfol.json')
-    oldobj = JSON.parse(json)
+    json = File.read('data/github/followers.json')
+    oldfoll = JSON.parse(json)
   rescue
-    oldobj=[]
+    oldfoll=[]
   end
-  system ("curl -u \""+uid+":"+pwd+"\" https://api.github.com/user/followers -o data/githubfol.json")
+  begin
+    json = File.read('data/github/issues.json')
+    oldissues = JSON.parse(json)
+  rescue
+   oldissues=[]
+  end
+  system("clear")
+  puts "Processing: "
+  system ("curl -u \""+uid+":"+pwd+"\" https://api.github.com/user/followers -o data/github/followers.json")
+  system ("curl -u \""+uid+":"+pwd+"\" https://api.github.com/issues -o data/github/issues.json")
+  json = File.read('data/github/followers.json')
+  foll = JSON.parse(json)
+  json = File.read('data/github/issues.json')
+  issues = JSON.parse(json)
 
-  json = File.read('data/githubfol.json')
-  obj = JSON.parse(json)
 
   system('clear')
-  if (oldobj & obj != obj)
+  if (oldfoll & foll != foll)
     puts "You have new followers:\n\n"
   else
     puts "You have no new followers."
   end
-  newobj = obj - oldobj | oldobj - obj
+  newfoll = foll - oldfoll | oldfoll - foll
   count=0
   while(1)
     begin
-      puts newobj[count]['login']
+      puts newfoll[count]['login']
+      count+=1
+    rescue
+      break
+    end
+  end
+
+  if (oldissues & issues != issues)
+    puts "\n\nNew issues have been assigned to you:\n\n"
+  else
+    puts "\n\nNo new issue has been assigned to you."
+  end
+  newissues = issues - oldissues | oldissues - issues
+  count=0
+  while(1)
+    begin
+      counta=0
+      while(1)
+        begin
+          todisplay=newissues[count]['assignees'][counta]['login']
+           if (counta!=0)
+            print " and "
+          end
+          print todisplay
+          counta+=1
+        rescue
+          break
+        end
+      end
+      todisplay=(newissues[count]['url'].split('/')) [5]
+      if (counta>1)
+        print " have assigned a new issue at "
+      else
+        print " has assigned a new issue at "
+      end
+      print todisplay
+      print " by "
+      print (newissues[count]['url'].split('/')) [4]
+      puts ":"
+      puts newissues[count]['title']
       count+=1
     rescue
       break
