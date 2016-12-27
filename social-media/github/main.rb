@@ -7,6 +7,8 @@ def github()
       github_client = github_login(userdetails)
       uid=userdetails[0]
       pwd=userdetails[1]
+      puts "\nGithub Notifier\n"
+      puts "\nSigned in, as #{github_client.user.name}.\n"
       github_client.auto_paginate = true
       break
   rescue
@@ -38,13 +40,13 @@ def github()
    oldissues=[]
   end
   system("clear")
-  puts "\nGithub Notifier\n\nSigned in, as #{github_client.user.name}.\n\nProcessing: 0% complete"
+  puts "\nProcessing: 0% complete..."
   system ("curl -u \""+uid+":"+pwd+"\" https://api.github.com/user/repos -o data/github/repos.json")
   system("clear")
-  puts "\nGithub Notifier\n\nSigned in, as #{github_client.user.name}.\n\nProcessing: 0% complete"
+  puts "\nProcessing: 0% complete..."
   system ("curl -u \""+uid+":"+pwd+"\" https://api.github.com/user/followers -o data/github/followers.json")
   system("clear")
-  puts "\nGithub Notifier\n\nSigned in, as #{github_client.user.name}.\n\nProcessing: 0% complete"
+  puts "\nProcessing: 0% complete..."
   system ("curl -u \""+uid+":"+pwd+"\" https://api.github.com/issues -o data/github/issues.json")
   json = File.read('data/github/followers.json')
   foll = JSON.parse(json)
@@ -90,17 +92,17 @@ def github()
         oldforks=[]
       end
       system("clear"); countnow+=1
-      print "\nGithub Notifier\n\nSigned in, as #{github_client.user.name}.\n\nProcessing: "
+      print "\nProcessing: "
       print countnow*100/totcount
       puts "% complete..."
       system ("curl -u \""+uid+":"+pwd+"\" https://api.github.com/repos/"+name+"/"+text+"/stargazers -o data/github/stars/"+name+"-"+text+".json")
       system("clear"); countnow+=1
-      print "\nGithub Notifier\n\nSigned in, as #{github_client.user.name}.\n\nProcessing: "
+      print "\nProcessing: "
       print countnow*100/totcount
       puts "% complete..."
       system ("curl -u \""+uid+":"+pwd+"\" https://api.github.com/repos/"+name+"/"+text+"/forks -o data/github/forks/"+name+"-"+text+".json")
       system("clear"); countnow+=1
-      print "\nGithub Notifier\n\nSigned in, as #{github_client.user.name}.\n\nProcessing: "
+      print "\nProcessing: "
       print countnow*100/totcount
       puts "% complete..."
       system ("curl -u \""+uid+":"+pwd+"\" https://api.github.com/repos/"+name+"/"+text+"/pulls -o data/github/pulls/"+name+"-"+text+".json")      
@@ -157,7 +159,7 @@ def github()
 
   system('clear')
   if (disp_pulls=="")
-    puts "You have no new updates pull requests."
+    puts "You have no new updates in your pull requests."
   else
     puts "\nYou have new updates in your pull requests: "
     puts "\n"+disp_pulls
