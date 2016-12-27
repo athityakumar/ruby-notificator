@@ -23,7 +23,9 @@ def github()
   end
   require 'fileutils'
   FileUtils::mkdir_p 'data'
-   FileUtils::mkdir_p 'data/github' 
+  FileUtils::mkdir_p 'data/github' 
+  FileUtils::mkdir_p 'data/github/stars'
+  FileUtils::mkdir_p 'data/github/forks'
   begin
     json = File.read('data/github/followers.json')
     oldfoll = JSON.parse(json)
@@ -36,17 +38,97 @@ def github()
   rescue
    oldissues=[]
   end
-  system("clear")
-  puts "Processing: "
+  puts "\nProcessing: "
+  system ("curl -u \""+uid+":"+pwd+"\" https://api.github.com/user/repos -o data/github/repos.json")
   system ("curl -u \""+uid+":"+pwd+"\" https://api.github.com/user/followers -o data/github/followers.json")
   system ("curl -u \""+uid+":"+pwd+"\" https://api.github.com/issues -o data/github/issues.json")
   json = File.read('data/github/followers.json')
   foll = JSON.parse(json)
   json = File.read('data/github/issues.json')
   issues = JSON.parse(json)
+  json = File.read('data/github/repos.json')
+  repos = JSON.parse(json)
 
+  count=0
+  repoarr=[]
+  while(1)
+    begin
+      repoarr[count]=repos[count]['full_name']
+      count+=1
+    rescue
+      break
+    end
+  end
+  disp_stars=""; disp_forks=""
+
+
+  countout=0
+  while(1)
+    begin
+      text=(repoarr[countout].split('/'))[1]
+      name=(repoarr[countout].split('/'))[0]
+      begin
+        json = File.read("data/github/stars/"+name+"-"+text+".json")
+        oldstars = JSON.parse(json)
+      rescue
+        oldstars=[]
+      end
+      begin
+        json = File.read("data/github/forks/"+name+"-"+text+".json")
+        oldforks = JSON.parse(json)
+      rescue
+        oldforks=[]
+      end
+      system ("curl -u \""+uid+":"+pwd+"\" https://api.github.com/repos/"+name+"/"+text+"/stargazers -o data/github/stars/"+name+"-"+text+".json")
+      system ("curl -u \""+uid+":"+pwd+"\" https://api.github.com/repos/"+name+"/"+text+"/forks -o data/github/forks/"+name+"-"+text+".json")
+      json = File.read('data/github/stars/'+name+"-"+text+'.json')
+      stars = JSON.parse(json)
+      json = File.read('data/github/forks/'+name+"-"+text+'.json')
+      forks = JSON.parse(json)
+
+      newstars=oldstars - stars | stars-oldstars
+      count=0
+      while(1)
+        begin
+          disp_stars=disp_stars+newstars[count]['login']+" at "+text+" by "+name+"\n"
+          count+=1
+        rescue
+          break
+        end
+      end
+
+      newforks = forks - oldforks | oldforks - forks
+      count=0
+      while(1)
+        begin
+          disp_forks=disp_forks+newforks[count]['full_name']+" at "+text+" by "+name+"\n"
+          count+=1
+        rescue
+          break
+        end
+      end
+
+      countout+=1
+    rescue
+      break
+    end
+  end
 
   system('clear')
+  if (disp_forks=="")
+    puts "You have no new forkers."
+  else
+    puts "\nYou have new forkers: "
+    puts "\n"+disp_forks
+  end
+
+    if (disp_forks=="")
+    puts "You have no new stargazers."
+  else
+    puts "\nYou have new stargazers: "
+    puts "\n"+disp_stars
+  end
+
   if (oldfoll & foll != foll)
     puts "You have new followers:\n\n"
   else
@@ -66,7 +148,7 @@ def github()
   if (oldissues & issues != issues)
     puts "\n\nNew issues have been assigned to you:\n\n"
   else
-    puts "\n\nNo new issue has been assigned to you."
+    puts "\nNo new issue has been assigned to you."
   end
   newissues = issues - oldissues | oldissues - issues
   count=0
