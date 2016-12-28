@@ -1,26 +1,10 @@
 require_relative 'github_helper'
 
 def github()
-  while (true)
-    begin
-      userdetails=["",""]
-      github_client = github_login(userdetails)
-      uid=userdetails[0]
-      pwd=userdetails[1]
-      puts "\nGithub Notifier\n"
-      puts "\nSigned in, as #{github_client.user.name}.\n"
-      github_client.auto_paginate = true
-      break
-  rescue
-      puts "Authentication failure.\nCheck your password and your connection. Please try again..."
-      require 'fileutils'
-      begin
-        FileUtils.remove_dir("secrets")
-      rescue
-        print ""
-      end
-    end
-  end
+  userdetails=["","",""]
+  github_login(userdetails)
+  uid=userdetails[0]
+  pwd=userdetails[1]
   require 'fileutils'
   FileUtils::mkdir_p 'data'
   FileUtils::mkdir_p 'data/github' 
@@ -40,7 +24,7 @@ def github()
    oldissues=[]
   end
   system("clear")
-  puts "\nProcessing: 0% complete..."
+  puts "\nSigned in, as #{userdetails[2]}."
   system ("curl -u \""+uid+":"+pwd+"\" https://api.github.com/user/repos -o data/github/repos.json")
   json = File.read('data/github/repos.json')
   repos = JSON.parse(json)
