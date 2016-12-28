@@ -1,6 +1,7 @@
 require_relative 'github_helper'
 
 def github()
+  numinpage=100
   require 'fileutils'
   FileUtils::mkdir_p 'data'
   FileUtils::mkdir_p 'data/github' 
@@ -24,10 +25,20 @@ def github()
    oldissues=[]
   end
   system("clear")
-  puts "\nSigned in, as #{userdetails[2]}."
-  system ("curl -s -u \""+uid+":"+pwd+"\" https://api.github.com/user/repos -o data/github/repos.json")
-  json = File.read('data/github/repos.json')
-  repos = JSON.parse(json)
+  puts "\nSigned in as #{userdetails[2]}.\nStarting download, please wait..."
+  counthere=1
+  repos=[]
+  while(1)
+    system ("curl -s -u \""+uid+":"+pwd+"\" \"https://api.github.com/user/repos?per_page=#{numinpage}&page=#{counthere}\" -o data/github/repos.json")
+    json = File.read('data/github/repos.json')
+    temprepo=JSON.parse(json)
+    break if temprepo==[]
+    repos += temprepo
+    counthere+=1
+  end
+    myfile=File.new("data/github/repos.json","w")
+    myfile.write(JSON.pretty_generate(repos))
+
   totcount=0
   repoarr=[]
   while(1)
@@ -44,17 +55,38 @@ def github()
   print "\nProcessing: "
   print countnow*100/totcount
   puts "% complete..."
-  system ("curl -s -u \""+uid+":"+pwd+"\" https://api.github.com/user/followers -o data/github/followers.json")
+
+  counthere=1
+  foll=[]
+  while(1)
+    system ("curl -s -u \""+uid+":"+pwd+"\" \"https://api.github.com/user/followers?per_page=#{numinpage}&page=#{counthere}\" -o data/github/followers.json")
+    json = File.read('data/github/followers.json')
+    tempfoll=JSON.parse(json)
+    break if tempfoll==[]
+    foll += tempfoll
+    counthere+=1
+  end
+    myfile=File.new("data/github/followers.json","w")
+    myfile.write(JSON.pretty_generate(foll))
+
   system("clear")
   countnow+=1
   print "\nProcessing: "
   print countnow*100/totcount
   puts "% complete..."
-  system ("curl -s -u \""+uid+":"+pwd+"\" https://api.github.com/issues -o data/github/issues.json")
-  json = File.read('data/github/followers.json')
-  foll = JSON.parse(json)
-  json = File.read('data/github/issues.json')
-  issues = JSON.parse(json)
+
+  counthere=1
+  issues=[]
+  while(1)
+    system ("curl -s -u \""+uid+":"+pwd+"\" \"https://api.github.com/issues?per_page=#{numinpage}&page=#{counthere}\" -o data/github/issues.json")
+    json = File.read('data/github/issues.json')
+    tempissues=JSON.parse(json)
+    break if tempissues==[]
+    issues += tempissues
+    counthere+=1
+  end
+    myfile=File.new("data/github/issues.json","w")
+    myfile.write(JSON.pretty_generate(issues))
 
   disp_stars=""; disp_forks=""; disp_pulls=""
   disp_stars_r=""; disp_forks_r=""; disp_pulls_r=""
@@ -85,23 +117,57 @@ def github()
       print "\nProcessing: "
       print countnow*100/totcount
       puts "% complete..."
-      system ("curl -s -u \""+uid+":"+pwd+"\" https://api.github.com/repos/"+name+"/"+text+"/stargazers -o data/github/stars/"+name+"-"+text+".json")
+
+      counthere=1
+      stars=[]
+      while(1)
+        system ("curl -s -u \""+uid+":"+pwd+"\" \"https://api.github.com/repos/"+name+"/"+text+"/stargazers?per_page=#{numinpage}&page=#{counthere}\" -o data/github/stars/"+name+"-"+text+".json")
+        json = File.read("data/github/stars/"+name+"-"+text+".json")
+        tempstars=JSON.parse(json)
+        break if tempstars==[]
+        stars += tempstars
+        counthere+=1
+      end
+        myfile=File.new("data/github/stars/"+name+"-"+text+".json","w")
+        myfile.write(JSON.pretty_generate(stars))
+
       system("clear"); countnow+=1
       print "\nProcessing: "
       print countnow*100/totcount
       puts "% complete..."
-      system ("curl -s -u \""+uid+":"+pwd+"\" https://api.github.com/repos/"+name+"/"+text+"/forks -o data/github/forks/"+name+"-"+text+".json")
+
+      counthere=1
+       forks=[]
+      while(1)
+        system ("curl -s -u \""+uid+":"+pwd+"\" \"https://api.github.com/repos/"+name+"/"+text+"/forks?per_page=#{numinpage}&page=#{counthere}\" -o data/github/forks/"+name+"-"+text+".json")
+        json = File.read("data/github/forks/"+name+"-"+text+".json")
+        tempforks=JSON.parse(json)
+        break if tempforks==[]
+        forks += tempforks
+        counthere+=1
+      end
+        myfile=File.new("data/github/forks/"+name+"-"+text+".json","w")
+        myfile.write(JSON.pretty_generate(forks))
+
+
+
       system("clear"); countnow+=1
       print "\nProcessing: "
       print countnow*100/totcount
       puts "% complete..."
-      system ("curl -s -u \""+uid+":"+pwd+"\" https://api.github.com/repos/"+name+"/"+text+"/pulls -o data/github/pulls/"+name+"-"+text+".json")      
-      json = File.read('data/github/pulls/'+name+"-"+text+'.json')
-      pulls = JSON.parse(json)      
-      json = File.read('data/github/stars/'+name+"-"+text+'.json')
-      stars = JSON.parse(json)
-      json = File.read('data/github/forks/'+name+"-"+text+'.json')
-      forks = JSON.parse(json)
+
+      counthere=1
+      pulls=[]
+      while(1)
+        system ("curl -s -u \""+uid+":"+pwd+"\" \"https://api.github.com/repos/"+name+"/"+text+"/pulls?per_page=#{numinpage}&page=#{counthere}\" -o data/github/pulls/"+name+"-"+text+".json")
+        json = File.read("data/github/pulls/"+name+"-"+text+".json")
+        temppulls=JSON.parse(json)
+        break if temppulls==[]
+        pulls += temppulls
+        counthere+=1
+      end
+        myfile=File.new("data/github/pulls/"+name+"-"+text+".json","w")
+        myfile.write(JSON.pretty_generate(pulls))
 
       newpulls= pulls-oldpulls
       count=0
@@ -174,7 +240,6 @@ def github()
           break
         end
       end
-
       countout+=1
     rescue
       break
@@ -182,6 +247,9 @@ def github()
   end
 
   system('clear')
+  if (countnow*100/totcount)<98
+    puts "Download interrupted. Result may not be accurate.\n"
+  end
   if (disp_pulls=="")
     puts "You have no new updates in your pull requests."
   else
