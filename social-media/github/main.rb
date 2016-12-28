@@ -42,19 +42,8 @@ def github()
   system("clear")
   puts "\nProcessing: 0% complete..."
   system ("curl -u \""+uid+":"+pwd+"\" https://api.github.com/user/repos -o data/github/repos.json")
-  system("clear")
-  puts "\nProcessing: 0% complete..."
-  system ("curl -u \""+uid+":"+pwd+"\" https://api.github.com/user/followers -o data/github/followers.json")
-  system("clear")
-  puts "\nProcessing: 0% complete..."
-  system ("curl -u \""+uid+":"+pwd+"\" https://api.github.com/issues -o data/github/issues.json")
-  json = File.read('data/github/followers.json')
-  foll = JSON.parse(json)
-  json = File.read('data/github/issues.json')
-  issues = JSON.parse(json)
   json = File.read('data/github/repos.json')
   repos = JSON.parse(json)
-
   totcount=0
   repoarr=[]
   while(1)
@@ -65,10 +54,27 @@ def github()
       break
     end
   end
-  totcount*=3
-  disp_stars=""; disp_forks=""; disp_pulls=""
+  totcount*=3;totcount+=2; countnow=-1
+  system("clear")
+  countnow+=1
+  print "\nProcessing: "
+  print countnow*100/totcount
+  puts "% complete..."
+  system ("curl -u \""+uid+":"+pwd+"\" https://api.github.com/user/followers -o data/github/followers.json")
+  system("clear")
+  countnow+=1
+  print "\nProcessing: "
+  print countnow*100/totcount
+  puts "% complete..."
+  system ("curl -u \""+uid+":"+pwd+"\" https://api.github.com/issues -o data/github/issues.json")
+  json = File.read('data/github/followers.json')
+  foll = JSON.parse(json)
+  json = File.read('data/github/issues.json')
+  issues = JSON.parse(json)
 
-  countnow=-1;  countout=0
+  disp_stars=""; disp_forks=""; disp_pulls=""
+  disp_stars_r=""; disp_forks_r=""; disp_pulls_r=""
+  countout=0
   while(1)
     begin
       text=(repoarr[countout].split('/'))[1]
@@ -113,7 +119,7 @@ def github()
       json = File.read('data/github/forks/'+name+"-"+text+'.json')
       forks = JSON.parse(json)
 
-      newpulls= oldpulls - pulls | pulls-oldpulls
+      newpulls= pulls-oldpulls
       count=0
       while(1)
         begin
@@ -128,9 +134,19 @@ def github()
           break
         end
       end
+      newpulls= oldpulls - pulls
+      count=0
+      while(1)
+        begin
+          disp_pulls_r=disp_pulls_r+newpulls[count]['title']+" at "+text+" by "+name+" created by "+newpulls[count]['user']['login']+"\n"
+          count+=1
+        rescue
+          break
+        end
+      end
 
 
-      newstars=oldstars - stars | stars-oldstars
+      newstars=stars-oldstars
       count=0
       while(1)
         begin
@@ -141,7 +157,19 @@ def github()
         end
       end
 
-      newforks = forks - oldforks | oldforks - forks
+      newstars=oldstars-stars
+      count=0
+      while(1)
+        begin
+          disp_stars_r=disp_stars_r+newstars[count]['login']+" at "+text+" by "+name+"\n"
+          count+=1
+        rescue
+          break
+        end
+      end
+
+
+      newforks = forks - oldforks
       count=0
       while(1)
         begin
@@ -151,6 +179,18 @@ def github()
           break
         end
       end
+
+      newforks = oldforks-forks
+      count=0
+      while(1)
+        begin
+          disp_forks_r=disp_forks_r+newforks[count]['full_name']+" at "+text+" by "+name+"\n"
+          count+=1
+        rescue
+          break
+        end
+      end
+
       countout+=1
     rescue
       break
@@ -164,6 +204,10 @@ def github()
     puts "\nYou have new updates in your pull requests: "
     puts "\n"+disp_pulls
   end
+  if (disp_pulls_r!="")
+    puts "\nSome pull requests have been closed: "
+    puts "\n"+disp_pulls_r
+  end
 
   if (disp_forks=="")
     puts "You have no new forkers."
@@ -172,19 +216,44 @@ def github()
     puts "\n"+disp_forks
   end
 
-    if (disp_stars=="")
+  if (disp_forks_r!="")
+    puts "\nYou have lost some forkers: "
+    puts "\n"+disp_forks
+  end
+
+  if (disp_stars=="")
     puts "You have no new stargazers."
   else
     puts "\nYou have new stargazers: "
     puts "\n"+disp_stars
   end
+  if (disp_stars_r!="")
+    puts "\nYou have lost some stargazers: "
+    puts "\n"+disp_stars
+  end
+
+
 
   if (oldfoll & foll != foll)
-    puts "You have new followers:\n\n"
+    puts "\nYou have new followers:\n\n"
   else
     puts "You have no new followers."
   end
-  newfoll = foll - oldfoll | oldfoll - foll
+  newfoll = foll - oldfoll
+  count=0
+  while(1)
+    begin
+      puts newfoll[count]['login']
+      count+=1
+    rescue
+      break
+    end
+  end
+
+  if (oldfoll & foll != oldfoll)
+    puts "You have lost some followers:\n\n"
+  end
+  newfoll = oldfoll - foll
   count=0
   while(1)
     begin
@@ -196,11 +265,11 @@ def github()
   end
 
   if (oldissues & issues != issues)
-    puts "\n\nNew issues have been assigned to you:\n\n"
+    puts "\nNew issues have been assigned to you:\n\n"
   else
-    puts "\nNo new issue has been assigned to you."
+    puts "No new issue has been assigned to you."
   end
-  newissues = issues - oldissues | oldissues - issues
+  newissues = issues - oldissues
   count=0
   while(1)
     begin
@@ -222,6 +291,43 @@ def github()
         print " have assigned a new issue at "
       else
         print " has assigned a new issue at "
+      end
+      print todisplay
+      print " by "
+      print (newissues[count]['url'].split('/')) [4]
+      puts ":"
+      puts newissues[count]['title']
+      count+=1
+    rescue
+      break
+    end
+  end
+
+  if (oldissues & issues != oldissues)
+    puts "\nSome issues have been unassigned from you:\n\n"
+  end
+  newissues = oldissues - issues
+  count=0
+  while(1)
+    begin
+      counta=0
+      while(1)
+        begin
+          todisplay=newissues[count]['assignees'][counta]['login']
+           if (counta!=0)
+            print " and "
+          end
+          print todisplay
+          counta+=1
+        rescue
+          break
+        end
+      end
+      todisplay=(newissues[count]['url'].split('/')) [5]
+      if (counta>1)
+        print " have unassigned an issue at "
+      else
+        print " has unassigned an issue at "
       end
       print todisplay
       print " by "
