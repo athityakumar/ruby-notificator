@@ -1,16 +1,16 @@
 require_relative 'github_helper'
 
 def github()
-  userdetails=["","",""]
-  github_login(userdetails)
-  uid=userdetails[0]
-  pwd=userdetails[1]
   require 'fileutils'
   FileUtils::mkdir_p 'data'
   FileUtils::mkdir_p 'data/github' 
   FileUtils::mkdir_p 'data/github/stars'
   FileUtils::mkdir_p 'data/github/forks'
   FileUtils::mkdir_p 'data/github/pulls'
+  userdetails=["","",""]
+  github_login(userdetails)
+  uid=userdetails[0]
+  pwd=userdetails[1]
   begin
     json = File.read('data/github/followers.json')
     oldfoll = JSON.parse(json)
@@ -25,7 +25,7 @@ def github()
   end
   system("clear")
   puts "\nSigned in, as #{userdetails[2]}."
-  system ("curl -u \""+uid+":"+pwd+"\" https://api.github.com/user/repos -o data/github/repos.json")
+  system ("curl -s -u \""+uid+":"+pwd+"\" https://api.github.com/user/repos -o data/github/repos.json")
   json = File.read('data/github/repos.json')
   repos = JSON.parse(json)
   totcount=0
@@ -44,13 +44,13 @@ def github()
   print "\nProcessing: "
   print countnow*100/totcount
   puts "% complete..."
-  system ("curl -u \""+uid+":"+pwd+"\" https://api.github.com/user/followers -o data/github/followers.json")
+  system ("curl -s -u \""+uid+":"+pwd+"\" https://api.github.com/user/followers -o data/github/followers.json")
   system("clear")
   countnow+=1
   print "\nProcessing: "
   print countnow*100/totcount
   puts "% complete..."
-  system ("curl -u \""+uid+":"+pwd+"\" https://api.github.com/issues -o data/github/issues.json")
+  system ("curl -s -u \""+uid+":"+pwd+"\" https://api.github.com/issues -o data/github/issues.json")
   json = File.read('data/github/followers.json')
   foll = JSON.parse(json)
   json = File.read('data/github/issues.json')
@@ -85,17 +85,17 @@ def github()
       print "\nProcessing: "
       print countnow*100/totcount
       puts "% complete..."
-      system ("curl -u \""+uid+":"+pwd+"\" https://api.github.com/repos/"+name+"/"+text+"/stargazers -o data/github/stars/"+name+"-"+text+".json")
+      system ("curl -s -u \""+uid+":"+pwd+"\" https://api.github.com/repos/"+name+"/"+text+"/stargazers -o data/github/stars/"+name+"-"+text+".json")
       system("clear"); countnow+=1
       print "\nProcessing: "
       print countnow*100/totcount
       puts "% complete..."
-      system ("curl -u \""+uid+":"+pwd+"\" https://api.github.com/repos/"+name+"/"+text+"/forks -o data/github/forks/"+name+"-"+text+".json")
+      system ("curl -s -u \""+uid+":"+pwd+"\" https://api.github.com/repos/"+name+"/"+text+"/forks -o data/github/forks/"+name+"-"+text+".json")
       system("clear"); countnow+=1
       print "\nProcessing: "
       print countnow*100/totcount
       puts "% complete..."
-      system ("curl -u \""+uid+":"+pwd+"\" https://api.github.com/repos/"+name+"/"+text+"/pulls -o data/github/pulls/"+name+"-"+text+".json")      
+      system ("curl -s -u \""+uid+":"+pwd+"\" https://api.github.com/repos/"+name+"/"+text+"/pulls -o data/github/pulls/"+name+"-"+text+".json")      
       json = File.read('data/github/pulls/'+name+"-"+text+'.json')
       pulls = JSON.parse(json)      
       json = File.read('data/github/stars/'+name+"-"+text+'.json')

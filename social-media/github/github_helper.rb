@@ -29,7 +29,7 @@ def github_login(a)
     a[0]=credentials[0][0,(credentials[0].length)-1]
     a[1]=credentials[1][0,(credentials[1].length)-1]
     puts "\nAuthenticating..."
-    system ("curl -u \""+a[0]+":"+a[1]+"\" https://api.github.com/user -o data/github/auth.json")
+    system ("curl -s -u \""+a[0]+":"+a[1]+"\" https://api.github.com/user -o data/github/auth.json")
     begin
       json = File.read('data/github/auth.json')
       auth = JSON.parse(json)
