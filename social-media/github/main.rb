@@ -150,8 +150,6 @@ def github()
         myfile=File.new("data/github/forks/"+name+"-"+text+".json","w")
         myfile.write(JSON.pretty_generate(forks))
 
-
-
       system("clear"); countnow+=1
       print "\nDownloading: "
       print countnow*100/totcount
@@ -174,7 +172,7 @@ def github()
       count=0
       while(1)
         begin
-          disp_pulls=disp_pulls+newpulls[count]['title']+" at "+text+" by "+name+" created by "+newpulls[count]['user']['login']
+          disp_pulls=disp_pulls+"- "+newpulls[count]['title']+" at "+text+" by "+name+" created by "+newpulls[count]['user']['login']
           if (oldpulls == [])
             disp_pulls=disp_pulls+" *NEW\n"
           else
@@ -189,7 +187,7 @@ def github()
       count=0
       while(1)
         begin
-          disp_pulls_r=disp_pulls_r+newpulls[count]['title']+" at "+text+" by "+name+" created by "+newpulls[count]['user']['login']+"\n"
+          disp_pulls_r=disp_pulls_r+"- "+newpulls[count]['title']+" at "+text+" by "+name+" created by "+newpulls[count]['user']['login']+"\n"
           count+=1
         rescue
           break
@@ -201,7 +199,7 @@ def github()
       count=0
       while(1)
         begin
-          disp_stars=disp_stars+newstars[count]['login']+" at "+text+" by "+name+"\n"
+          disp_stars=disp_stars+"- "+newstars[count]['login']+" at "+text+" by "+name+"\n"
           count+=1
         rescue
           break
@@ -212,7 +210,7 @@ def github()
       count=0
       while(1)
         begin
-          disp_stars_r=disp_stars_r+newstars[count]['login']+" at "+text+" by "+name+"\n"
+          disp_stars_r=disp_stars_r+"- "+newstars[count]['login']+" at "+text+" by "+name+"\n"
           count+=1
         rescue
           break
@@ -224,7 +222,7 @@ def github()
       count=0
       while(1)
         begin
-          disp_forks=disp_forks+newforks[count]['full_name']+" at "+text+" by "+name+"\n"
+          disp_forks=disp_forks+"- "+newforks[count]['full_name']+" at "+text+" by "+name+"\n"
           count+=1
         rescue
           break
@@ -235,7 +233,7 @@ def github()
       count=0
       while(1)
         begin
-          disp_forks_r=disp_forks_r+newforks[count]['full_name']+" at "+text+" by "+name+"\n"
+          disp_forks_r=disp_forks_r+"- "+newforks[count]['full_name']+" at "+text+" by "+name+"\n"
           count+=1
         rescue
           break
@@ -296,7 +294,7 @@ def github()
   count=0
   while(1)
     begin
-      textview+= newfoll[count]['login']+"\n"
+      textview+="- "+newfoll[count]['login']+"\n"
       count+=1
     rescue
       break
@@ -329,7 +327,8 @@ def github()
       counta=0
       while(1)
         begin
-          todisplay=newissues[count]['assignees'][counta]['login']
+          todisplay="- "
+          todisplay+=newissues[count]['assignees'][counta]['login']
            if (counta!=0)
             textview+= " and "
           end
@@ -366,7 +365,8 @@ def github()
       counta=0
       while(1)
         begin
-          todisplay=newissues[count]['assignees'][counta]['login']
+          todisplay="- "
+          todisplay+=newissues[count]['assignees'][counta]['login']
            if (counta!=0)
             textview+= " and "
           end
@@ -414,10 +414,18 @@ def github()
           timeline=timefile.readline
           timefile.close
         rescue
+        timeline="epoch"
         end
-        mailtext="To: #{userdetails[3]}\nFrom: #{userdetails[3]}\nSubject: Update of Github Notifications\nContent-Type: text/html\n\nDear @#{uid},\n\nI have some Github Notifications you might be interested to have a look at.  These notifications are from #{timeline} - #{timetext}."
-        mailtext+="\n\n"+textview+"\n\n"
-        mailtext+="\n\nHave an awesome day!\n\nYours sincerely,\n\nGitHub Notifier <a href=\"https://github.com/athityakumar/ruby-notificator/\">(View source code on GitHub)</a>."
+        mailtext="To: #{userdetails[3]}\nFrom: #{userdetails[3]}\nSubject: Update of Github Notifications\nContent-Type: text/html\n\nDear @#{uid},<br><br>I have some Github Notifications you might be interested to have a look at.  These notifications are from #{timeline} - #{timetext}."
+        while(1)
+          begin
+            textview["\n"]="<br>"
+          rescue
+            break
+          end
+        end
+        mailtext+="<br><br>"+textview+"<br><br>"
+        mailtext+="<br><br>Have an awesome day!<br><br>Yours sincerely,<br><br>GitHub Notifier <a href=\"https://github.com/athityakumar/ruby-notificator/\">(View source code on GitHub)</a>."
         myfile.write(mailtext)
         myfile.close
         system("sudo sendmail -f #{userdetails[3]} #{userdetails[3]} < data/github/mail.txt")
