@@ -1,6 +1,7 @@
 require_relative 'github_helper'
 
 def github()
+  textview=""
   numinpage=100
   require 'fileutils'
   FileUtils::mkdir_p 'data'
@@ -8,7 +9,7 @@ def github()
   FileUtils::mkdir_p 'data/github/stars'
   FileUtils::mkdir_p 'data/github/forks'
   FileUtils::mkdir_p 'data/github/pulls'
-  userdetails=["","",""]
+  userdetails=[]
   github_login(userdetails)
   uid=userdetails[0]
   pwd=userdetails[1]
@@ -52,7 +53,7 @@ def github()
   totcount*=3;totcount+=2; countnow=-1
   system("clear")
   countnow+=1
-  print "\nProcessing: "
+  print "\nDownloading: "
   print countnow*100/totcount
   puts "% complete..."
 
@@ -71,7 +72,7 @@ def github()
 
   system("clear")
   countnow+=1
-  print "\nProcessing: "
+  print "\nDownloading: "
   print countnow*100/totcount
   puts "% complete..."
 
@@ -114,7 +115,7 @@ def github()
         oldforks=[]
       end
       system("clear"); countnow+=1
-      print "\nProcessing: "
+      print "\nDownloading: "
       print countnow*100/totcount
       puts "% complete..."
 
@@ -132,7 +133,7 @@ def github()
         myfile.write(JSON.pretty_generate(stars))
 
       system("clear"); countnow+=1
-      print "\nProcessing: "
+      print "\nDownloading: "
       print countnow*100/totcount
       puts "% complete..."
 
@@ -152,7 +153,7 @@ def github()
 
 
       system("clear"); countnow+=1
-      print "\nProcessing: "
+      print "\nDownloading: "
       print countnow*100/totcount
       puts "% complete..."
 
@@ -248,54 +249,54 @@ def github()
 
   system('clear')
   if (countnow*100/totcount)<98
-    puts "Download interrupted. Result may not be accurate.\n"
+    textview+= "Download interrupted. Result may not be accurate.\n\n"
   end
   if (disp_pulls=="")
-    puts "You have no new updates in your pull requests."
+    textview+= "You have no new updates in your pull requests.\n"
   else
-    puts "\nYou have new updates in your pull requests: "
-    puts "\n"+disp_pulls
+    textview+= "\nYou have new updates in your pull requests: \n"
+    textview+= "\n"+disp_pulls+"\n"
   end
   if (disp_pulls_r!="")
-    puts "\nSome pull requests have been closed: "
-    puts "\n"+disp_pulls_r
+    textview+= "\nSome pull requests have been closed: \n"
+    textview+= "\n"+disp_pulls_r+"\n"
   end
 
   if (disp_forks=="")
-    puts "You have no new forkers."
+    textview+= "You have no new forkers.\n"
   else
-    puts "\nYou have new forkers: "
-    puts "\n"+disp_forks
+    textview+= "\nYou have new forkers: \n"
+    textview+= "\n"+disp_forks+"\n"
   end
 
   if (disp_forks_r!="")
-    puts "\nYou have lost some forkers: "
-    puts "\n"+disp_forks
+    textview+= "\nYou have lost some forkers: \n"
+    textview+= "\n"+disp_forks+"\n"
   end
 
   if (disp_stars=="")
-    puts "You have no new stargazers."
+    textview+= "You have no new stargazers.\n"
   else
-    puts "\nYou have new stargazers: "
-    puts "\n"+disp_stars
+    textview+= "\nYou have new stargazers: \n"
+    textview+= "\n"+disp_stars+"\n"
   end
   if (disp_stars_r!="")
-    puts "\nYou have lost some stargazers: "
-    puts "\n"+disp_stars
+    textview+= "\nYou have lost some stargazers: \n"
+    textview+= "\n"+disp_stars+"\n"
   end
 
 
 
   if (oldfoll & foll != foll)
-    puts "\nYou have new followers:\n\n"
+    textview+= "\nYou have new followers:\n\n"
   else
-    puts "You have no new followers."
+    textview+= "You have no new followers.\n"
   end
   newfoll = foll - oldfoll
   count=0
   while(1)
     begin
-      puts newfoll[count]['login']
+      textview+= newfoll[count]['login']+"\n"
       count+=1
     rescue
       break
@@ -303,13 +304,13 @@ def github()
   end
 
   if (oldfoll & foll != oldfoll)
-    puts "You have lost some followers:\n\n"
+    textview+= "You have lost some followers:\n\n\n"
   end
   newfoll = oldfoll - foll
   count=0
   while(1)
     begin
-      puts newfoll[count]['login']
+      textview+= newfoll[count]['login']+"\n"
       count+=1
     rescue
       break
@@ -317,9 +318,9 @@ def github()
   end
 
   if (oldissues & issues != issues)
-    puts "\nNew issues have been assigned to you:\n\n"
+    textview+= "\nNew issues have been assigned to you:\n\n"
   else
-    puts "No new issue has been assigned to you."
+    textview+= "No new issue has been assigned to you.\n"
   end
   newissues = issues - oldissues
   count=0
@@ -330,9 +331,9 @@ def github()
         begin
           todisplay=newissues[count]['assignees'][counta]['login']
            if (counta!=0)
-            print " and "
+            textview+= " and "
           end
-          print todisplay
+          textview+= todisplay
           counta+=1
         rescue
           break
@@ -340,15 +341,15 @@ def github()
       end
       todisplay=(newissues[count]['url'].split('/')) [5]
       if (counta>1)
-        print " have assigned a new issue at "
+        textview+= " have assigned a new issue at "
       else
-        print " has assigned a new issue at "
+        textview+= " has assigned a new issue at "
       end
-      print todisplay
-      print " by "
-      print (newissues[count]['url'].split('/')) [4]
-      puts ":"
-      puts newissues[count]['title']
+      textview+= todisplay
+      textview+= " by "
+      textview+= (newissues[count]['url'].split('/')) [4]
+      textview+= ":\n"
+      textview+= newissues[count]['title']+"\n"
       count+=1
     rescue
       break
@@ -356,7 +357,7 @@ def github()
   end
 
   if (oldissues & issues != oldissues)
-    puts "\nSome issues have been unassigned from you:\n\n"
+    textview+= "\nSome issues have been unassigned from you:\n\n\n"
   end
   newissues = oldissues - issues
   count=0
@@ -367,9 +368,9 @@ def github()
         begin
           todisplay=newissues[count]['assignees'][counta]['login']
            if (counta!=0)
-            print " and "
+            textview+= " and "
           end
-          print todisplay
+          textview+= todisplay
           counta+=1
         rescue
           break
@@ -377,18 +378,37 @@ def github()
       end
       todisplay=(newissues[count]['url'].split('/')) [5]
       if (counta>1)
-        print " have unassigned an issue at "
+        textview+= " have unassigned an issue at "
       else
-        print " has unassigned an issue at "
+        textview+= " has unassigned an issue at "
       end
-      print todisplay
-      print " by "
-      print (newissues[count]['url'].split('/')) [4]
-      puts ":"
-      puts newissues[count]['title']
+      textview+= todisplay
+      textview+= " by "
+      textview+= (newissues[count]['url'].split('/')) [4]
+      textview+= ":\n"
+      textview+= newissues[count]['title']+"\n"
       count+=1
     rescue
       break
     end
   end
+  puts textview
+  begin
+    system("(ps -e | grep sendmail) > ./data/github/mail.txt")
+    myfile=File.new("data/github/mail.txt","r")
+    line=myfile.readline
+    myfile.close
+    if line!=""
+      puts "Would you like to send the message to #{userdetails[3]} using sendmail (you need root previledges)?"
+      choice=gets
+      if choice[0]=="y" || choice[0]=="Y"
+        puts "Please wait..."
+        system("sudo sendmail -s \"Github Notifier\" #{userdetails[3]}")
+        system(textview)
+        system(".")
+      end
+    end
+  rescue
+  end
+  puts "\nThanx!"
 end

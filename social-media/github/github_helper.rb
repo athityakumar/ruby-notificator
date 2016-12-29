@@ -48,6 +48,7 @@ def github_login(a)
             next
       else
         a[2]=auth["name"]
+        a[3]=auth["email"]
         puts "Authentication successful.\nSigned in, as #{a[2]}."
         break
     end
