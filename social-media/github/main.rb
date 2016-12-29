@@ -393,22 +393,39 @@ def github()
     end
   end
   puts textview
+  time=Time.new
+  timetext=""; line=""; timeline=""
+  timetext+=time.day.to_s;timetext+="-";timetext+=time.month.to_s;timetext+="-";timetext+=time.year.to_s
   begin
     system("(ps -e | grep sendmail) > ./data/github/mail.txt")
     myfile=File.new("data/github/mail.txt","r")
     line=myfile.readline
     myfile.close
+  rescue
+  end
     if line!=""
       puts "Would you like to send the message to #{userdetails[3]} using sendmail (you need root previledges)?"
       choice=gets
       if choice[0]=="y" || choice[0]=="Y"
         puts "Please wait..."
-        system("sudo sendmail -s \"Github Notifier\" #{userdetails[3]}")
-        system(textview)
-        system(".")
+        myfile=File.new("data/github/mail.txt","w")
+        begin
+          timefile=File.new("data/github/time.txt","r")
+          timeline=timefile.readline
+          timefile.close
+        rescue
+        end
+        mailtext="To: #{userdetails[3]}\nFrom: #{userdetails[3]}\nSubject: Update of Github Notifications\nContent-Type: text/html\n\nDear @#{uid},\n\nI have some Github Notifications you might be interested to have a look at.  These notifications are from #{timeline} - #{timetext}."
+        mailtext+="\n\n"+textview+"\n\n"
+        mailtext+="\n\nHave an awesome day!\n\nYours sincerely,\n\nGitHub Notifier <a href=\"https://github.com/athityakumar/ruby-notificator/\">(View source code on GitHub)</a>."
+        myfile.write(mailtext)
+        myfile.close
+        system("sudo sendmail -f #{userdetails[3]} #{userdetails[3]} < data/github/mail.txt")
+        puts "Mail sent."
       end
     end
-  rescue
-  end
   puts "\nThanx!"
+  myfile=File.new("data/github/time.txt","w")
+  myfile.write(timetext)
+  myfile.close
 end
