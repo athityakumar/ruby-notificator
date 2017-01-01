@@ -9,6 +9,7 @@ def github()
   FileUtils::mkdir_p 'data/github/stars'
   FileUtils::mkdir_p 'data/github/forks'
   FileUtils::mkdir_p 'data/github/pulls'
+  FileUtils::mkdir_p 'data/github/issues'
   userdetails=[]
   github_login(userdetails)
   uid=userdetails[0]
@@ -50,7 +51,7 @@ def github()
       break
     end
   end
-  totcount*=3;totcount+=2; countnow=-1
+  totcount*=4;totcount+=2; countnow=-1
   system("clear")
   countnow+=1
   print "\nDownloading: "
@@ -89,8 +90,8 @@ def github()
     myfile=File.new("data/github/issues.json","w")
     myfile.write(JSON.pretty_generate(issues))
 
-  disp_stars=""; disp_forks=""; disp_pulls=""
-  disp_stars_r=""; disp_forks_r=""; disp_pulls_r=""
+  disp_stars=""; disp_forks=""; disp_pulls=""; disp_repissues=""
+  disp_stars_r=""; disp_forks_r=""; disp_pulls_r=""; disp_repissues_r=""
   countout=0
   while(1)
     begin
@@ -114,6 +115,14 @@ def github()
       rescue
         oldforks=[]
       end
+      begin
+        json = File.read("data/github/issues/"+name+"-"+text+".json")
+        oldrepissues = JSON.parse(json)
+      rescue
+        oldrepissues=[]
+      end
+           
+      
       system("clear"); countnow+=1
       print "\nDownloading: "
       print countnow*100/totcount
@@ -138,7 +147,7 @@ def github()
       puts "% complete..."
 
       counthere=1
-       forks=[]
+      forks=[]
       while(1)
         system ("curl -s -u \""+uid+":"+pwd+"\" \"https://api.github.com/repos/"+name+"/"+text+"/forks?per_page=#{numinpage}&page=#{counthere}\" -o data/github/forks/"+name+"-"+text+".json")
         json = File.read("data/github/forks/"+name+"-"+text+".json")
@@ -167,6 +176,53 @@ def github()
       end
         myfile=File.new("data/github/pulls/"+name+"-"+text+".json","w")
         myfile.write(JSON.pretty_generate(pulls))
+
+      system("clear"); countnow+=1
+      print "\nDownloading: "
+      print countnow*100/totcount
+      puts "% complete..."
+
+      counthere=1
+      repissues=[]
+      while(1)
+        system ("curl -s -u \""+uid+":"+pwd+"\" \"https://api.github.com/repos/"+name+"/"+text+"/issues?per_page=#{numinpage}&page=#{counthere}\" -o data/github/issues/"+name+"-"+text+".json")
+        json = File.read("data/github/issues/"+name+"-"+text+".json")
+        temprepissues=JSON.parse(json)
+        break if temprepissues==[]
+        repissues += temprepissues
+        counthere+=1
+      end
+        myfile=File.new("data/github/issues/"+name+"-"+text+".json","w")
+        myfile.write(JSON.pretty_generate(repissues))
+      
+      newrepissues= repissues-oldrepissues
+      count=0
+      while(1)
+        begin
+          disp_repissues=disp_repissues+"- "+newrepissues[count]['title']+" at "+text+" by "+name+" created by "+newrepissues[count]['user']['login']
+          if (oldrepissues == [])
+            disp_repissues=disp_repissues+" *NEW\n"
+          else
+            disp_repissues=disp_repissues+"\n"
+          end
+          count+=1
+        rescue
+          break
+        end
+      end
+      newrepissues= oldrepissues - repissues
+      count=0
+      while(1)
+        begin
+          disp_repissues_r=disp_repissues_r+"- "+newrepissues[count]['title']+" at "+text+" by "+name+" created by "+newrepissues[count]['user']['login']+"\n"
+          count+=1
+        rescue
+          break
+        end
+      end      
+      
+
+
 
       newpulls= pulls-oldpulls
       count=0
@@ -249,6 +305,17 @@ def github()
   if (countnow*100/totcount)<98
     textview+= "Download interrupted. Result may not be accurate.\n\n"
   end
+  if (disp_repissues=="")
+    textview+= "You have no new updates in any issue from your repos.\n"
+  else
+    textview+= "\nYou have new updates in some issues from your repos: \n"
+    textview+= "\n"+disp_repissues+"\n"
+  end
+  if (disp_repissues_r!="")
+    textview+= "\nSome issues from your repos have been closed: \n"
+    textview+= "\n"+disp_repissues_r+"\n"
+  end
+
   if (disp_pulls=="")
     textview+= "You have no new updates in your pull requests.\n"
   else
