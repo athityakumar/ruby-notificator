@@ -239,10 +239,20 @@ def github()
     if (type=="pulls")
       textview_h+="You have update in a pull request:"
       textview_h+="- #{datanew[countout]['title']} by #{datanew[countout]['login']}. (#{datanew[countout]['url']})"
+      if(oldnotifications.find {|x| x["url"] == datanew[countout]['url'] }==nil)
+        textview_h+=" * NEW\n"
+      else
+        textview_h+="\n"
+      end
     end
     if (type=="issues")
       textview_h+="You have update in an issue:"
       textview_h+="- #{datanew[countout]['title']} by #{datanew[countout]['login']}. (#{datanew[countout]['url']})"
+      if(oldnotifications.find {|x| x["url"] == datanew[countout]['url'] }==nil)
+        textview_h+=" * NEW\n"
+      else
+        textview_h+="\n"
+      end
     end
     countout+=1
     if (textview_h!="" and prevname!=fullname)
