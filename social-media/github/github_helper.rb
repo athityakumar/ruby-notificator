@@ -3,11 +3,12 @@ require 'io/console'
 require 'fileutils'
 def github_login(a)
   system("clear")
+  proxy_str=""
   puts "\nGithub Notifier\n"
   while (1)
   flagv=0
   begin
-    FileUtils.rm("data/github/auth.json")
+    FileUtils.rm("social-media/github/data/auth.json")
   rescue
   end
     begin
@@ -29,14 +30,28 @@ def github_login(a)
     a[0]=credentials[0][0,(credentials[0].length)-1]
     a[1]=credentials[1][0,(credentials[1].length)-1]
     puts "\nAuthenticating..."
-    system ("curl -s -u \""+a[0]+":"+a[1]+"\" https://api.github.com/user -o data/github/auth.json")
+    system ("curl -s "+proxy_str+" -u \""+a[0]+":"+a[1]+"\" https://api.github.com/user -o social-media/github/data/auth.json")
     begin
-      json = File.read('data/github/auth.json')
+      json = File.read('social-media/github/data/auth.json')
       auth = JSON.parse(json)
     rescue
         system("clear")
-        puts "Unable to connect. Please check your internet connection and try again."
-        exit
+        puts "Unable to connect. Please check your internet connection.\n1) Try again.\n2) Try again via IIT-KGP proxy\n3) Try again via manual proxy\n4) Exit.\nPl enter your choice: "
+        choicest=gets
+        if (choicest[0]=="1")
+          proxy_str=""
+          next
+        elsif (choicest[0]=="2")
+          proxy_str="--proxy 10.3.100.207:8080"
+          next
+        elsif (choicest[0]=="3")
+          puts "Enter proxy and port separated by a colon: "
+          proxyhere=gets
+          proxy_str="--proxy "+proxyhere
+          next
+        else
+          exit
+        end
     end
       if (auth['message']=="Bad credentials")
             begin
@@ -69,4 +84,5 @@ def github_login(a)
       end
     end
   end
+  return proxy_str
 end
