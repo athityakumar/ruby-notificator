@@ -13,7 +13,7 @@ def github()
     json = File.read('social-media/github/data/data.json')
     oldnotifications = JSON.parse(json)
   rescue
-    oldnotifications={}
+    oldnotifications=[]
   end
   begin
     json = File.read('social-media/github/data/followers.json')
@@ -39,8 +39,8 @@ def github()
     repos += temprepo
     counthere+=1
   end
-    myfile=File.new("social-media/github/data/repos.json","w")
-    myfile.write(JSON.pretty_generate(repos))
+  myfile=File.new("social-media/github/data/repos.json","w")
+  myfile.write(JSON.pretty_generate(repos))
 
   totcount=0
   repoarr=[]
@@ -69,8 +69,8 @@ def github()
     foll += tempfoll
     counthere+=1
   end
-    myfile=File.new("social-media/github/data/followers.json","w")
-    myfile.write(JSON.pretty_generate(foll))
+  myfile=File.new("social-media/github/data/followers.json","w")
+  myfile.write(JSON.pretty_generate(foll))
 
   system("clear")
   countnow+=1
@@ -88,11 +88,11 @@ def github()
     issues += tempissues
     counthere+=1
   end
-    myfile=File.new("social-media/github/data/issues.json","w")
-    myfile.write(JSON.pretty_generate(issues))
+  myfile=File.new("social-media/github/data/issues.json","w")
+  myfile.write(JSON.pretty_generate(issues))
 
   countout=0
-  notifications={}
+  notifications=[]
 #Repo-wise extraction begins here
   texthtml=textview
   while(1)
@@ -103,7 +103,6 @@ def github()
     rescue
       break
     end
-      notifications[fullname]={}
       
       system("clear"); countnow+=1
       print "\nDownloading: "
@@ -120,11 +119,10 @@ def github()
         stars += tempstars
         counthere+=1
       end
-      notifications[fullname]["stars"]=[]
       count=0
       while(1)
         begin
-          notifications[fullname]["stars"].push(stars[count]['login'])
+          notifications.push({"type"=>"stars","name"=>fullname,"login"=>stars[count]['login']})
           count+=1
         rescue
           break
@@ -148,11 +146,10 @@ def github()
         counthere+=1
       end
       myfile.close
-      notifications[fullname]["forks"]=[]
       count=0
       while(1)
         begin
-          notifications[fullname]["forks"].push(forks[count]['owner']['login'])
+          notifications.push({"type"=>"forks","name"=>fullname,"login"=>forks[count]['owner']['login']})
           count+=1
         rescue
           break
@@ -174,11 +171,10 @@ def github()
         counthere+=1
       end
 
-      notifications[fullname]["pulls"]=[]
       count=0
       while(1)
         begin
-          notifications[fullname]["pulls"].push({"title"=> pulls[count]['title'],"login"=>pulls[count]['user']['login'],"url"=>pulls[count]['html_url'],"no"=>pulls[count]['number'],"updated"=>pulls[count]['updated_at']})
+          notifications.push({"type"=>"pulls","name"=>fullname,"title"=> pulls[count]['title'],"login"=>pulls[count]['user']['login'],"url"=>pulls[count]['html_url'],"no"=>pulls[count]['number'],"updated"=>pulls[count]['updated_at']})
           count+=1
         rescue
           break
@@ -200,11 +196,11 @@ def github()
         repissues += temprepissues
         counthere+=1
       end
-      notifications[fullname]["issues"]=[]
+      
       count=0
       while(1)
         begin
-          notifications[fullname]["issues"].push({"title"=> repissues[count]['title'],"login"=>repissues[count]['user']['login'],"url"=>repissues[count]['html_url'],"no"=>repissues[count]['number'],"updated"=>repissues[count]['updated_at']})
+          notifications.push({"type"=>"issues","name"=>fullname,"title"=> repissues[count]['title'],"login"=>repissues[count]['user']['login'],"url"=>repissues[count]['html_url'],"no"=>repissues[count]['number'],"updated"=>repissues[count]['updated_at']})
           count+=1
         rescue
           break
@@ -221,150 +217,81 @@ def github()
     textview+= "Download interrupted. Result may not be accurate.\n\n"
   end
 
+  datanew=notifications - oldnotifications
+  dataold=oldnotifications - notifications
+  prevname=""
+
   countout=0
   while(1)
     textview_h=""
     begin
-      text=(repoarr[countout].split('/'))[1]
-      name=(repoarr[countout].split('/'))[0]
-      fullname=name+"/"+text
+      fullname=datanew[countout]["name"]
+      type=datanew[countout]["type"]
     rescue
       break
     end
-    datanew=notifications[fullname]
-    dataold=oldnotifications[fullname]
-    if (dataold==nil)
-      dataold=  {"stars"=> [],"forks"=> [],"pulls"=> [], "issues"=> []}
+    if (type=="stars")
+        textview_h+="You have new stargazer: "+datanew[countout]["login"]
     end
-    starnew=datanew["stars"] - dataold["stars"]
-    starold=dataold["stars"] - datanew["stars"]
-    if (starnew!=[])
-      textview_h+="You have new stargazers:\n"
-      countinside=0
-      while(1)
-        begin
-          textview_h+="- "+starnew[countinside]+"\n"
-        rescue
-          break
-        end
-        countinside+=1
-      end
+    if (type=="forks")
+        textview_h+="You have new forker: "+datanew[countout]["login"]
     end
-    if (starold!=[])
-      textview_h+="You have lost some stargazers:\n"
-      countinside=0
-      while(1)
-        begin
-          textview_h+="- "+starold[countinside]+"\n"
-        rescue
-          break
-        end
-        countinside+=1
-      end
+    if (type=="pulls")
+      textview_h+="You have update in a pull request:"
+      textview_h+="- #{datanew[countout]['title']} by #{datanew[countout]['login']}. (#{datanew[countout]['url']})"
     end
-
-    forknew=datanew["forks"] - dataold["forks"]
-    forkold=dataold["forks"] - datanew["forks"]
-    if (forknew!=[])
-      textview_h+="You have new forkers:\n"
-      countinside=0
-      while(1)
-        begin
-          textview_h+="- "+forknew[countinside]+"\n"
-        rescue
-          break
-        end
-        countinside+=1
-      end
-    end
-    if (forkold!=[])
-      textview_h+="You have lost some forkers:\n"
-      countinside=0
-      while(1)
-        begin
-          textview_h+="- "+forkold[countinside]+"\n"
-        rescue
-          break
-        end
-        countinside+=1
-      end
-    end
-
-    pullnew=datanew["pulls"] - dataold["pulls"]
-    pullold=dataold["pulls"] - datanew["pulls"]
-    if (pullnew!=[])
-      textview_h="You have new pull requests:\n"
-      countinside=0
-      while(1)
-        begin
-          textview_h="- #{pullnew[countinside]['title']} by #{pullnew[countinside]['login']}. (#{pullnew[countinside]['url']})"
-          if (dataold["pulls"][countinside]==nil)
-            textview_h=" *NEW\n"
-          else
-            textview_h="\n"
-          end
-        rescue
-          break
-        end
-        countinside+=1
-      end
-    end
-    if (pullold!=[])
-      textview_h+="Some pull requests have been closed:\n"
-      countinside=0
-      while(1)
-        begin
-          textview_h+=s"- #{pullold[countinside]['title']} by#{pullold[countinside]['login']}. (#{pullold[countinside]['url']}) \n"
-        rescue
-          break
-        end
-        countinside+=1
-      end
-    end
-
-    issuenew=datanew["issues"] - dataold["issues"]
-    issueold=dataold["issues"] - datanew["issues"]
-    if (issuenew!=[])
-      textview_h+="You have new issues:\n"
-      countinside=0
-      while(1)
-        begin
-          textview_h+="- #{issuenew[countinside]['title']} by #{issuenew[countinside]['login']}. (#{issuenew[countinside]['url']})"
-          if (dataold["issues"][countinside]==nil)
-            textview_h+=" *NEW\n"
-          else
-            textview_h+="\n"
-          end
-        rescue
-          break
-        end
-        countinside+=1
-      end
-    end
-    if (issueold!=[])
-      textview_h+="Some issues have been closed:\n"
-      countinside=0
-      while(1)
-        begin
-          textview_h+=s"- #{issueold[countinside]['title']} by #{issueold[countinside]['login']}. (#{issueold[countinside]['url']}) \n"
-        rescue
-          break
-        end
-        countinside+=1
-      end
+    if (type=="issues")
+      textview_h+="You have update in an issue:"
+      textview_h+="- #{datanew[countout]['title']} by #{datanew[countout]['login']}. (#{datanew[countout]['url']})"
     end
     countout+=1
-    if (textview_h!="")
-      textview+="\nYou have some updates in #{fullname}:\n\n"+textview_h
-      texthtml+="\n<b>You have some updates in <a href=\"www.github.com/#{fullname}\">#{fullname}</a>:</b>\n\n"+textview_h
+    if (textview_h!="" and prevname!=fullname)
+      textview+="\n\nYou have some additions to #{fullname}:\n\n"
+      texthtml+="\n\n<b>You have some additions to <a href=\"www.github.com/#{fullname}\">#{fullname}</a>:</b>\n\n"
     end
+    textview+="\n"+textview_h
+    texthtml+="\n"+textview_h
+    prevname=fullname
   end
 
+  prevname=""
+  countout=0
+  while(1)
+    textview_h=""
+    begin
+      fullname=dataold[countout]["name"]
+      type=dataold[countout]["type"]
+    rescue
+      break
+    end
+    if (type=="stars")
+        textview_h+="You have new stargazer: "+dataold[countout]["login"]
+    end
+    if (type=="forks")
+        textview_h+="You have new forker: "+dataold[countout]["login"]
+    end
+    if (type=="pulls")
+      textview_h+="You have update in a pull request:"
+      textview_h+="- #{dataold[countout]['title']} by #{dataold[countout]['login']}. (#{dataold[countout]['url']})"
+    end
+    if (type=="issues")
+      textview_h+="You have update in an issue:"
+      textview_h+="- #{dataold[countout]['title']} by #{dataold[countout]['login']}. (#{dataold[countout]['url']})"
+    end    
+    countout+=1
+    if (textview_h!="" and prevname!=fullname)
+      textview+="\n\nYou have some subtractions from #{fullname}:\n\n"
+      texthtml+="\n\n<b>You have some subtractions from <a href=\"www.github.com/#{fullname}\">#{fullname}</a>:</b>\n\n"
+    end
+    textview+="\n"+textview_h
+    texthtml+="\n"+textview_h
+    prevname=fullname
+  end
 
   textview_n=""
   if (oldfoll & foll != foll)
-    textview+= "\nYou have new followers:\n\n"
-    texthtml+="\n<b>You have new followers:</b>\n\n"
+    textview+= "\n\nYou have new followers:\n\n"
+    texthtml+="\n\n<b>You have new followers:</b>\n\n"
   end
   newfoll = foll - oldfoll
   count=0

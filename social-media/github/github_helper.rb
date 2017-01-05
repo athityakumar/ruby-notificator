@@ -36,12 +36,22 @@ def github_login(a)
       auth = JSON.parse(json)
     rescue
         system("clear")
-        puts "Unable to connect. Please check your internet connection and try again.\nWould you like to add IIT-KGP proxy?"
+        puts "Unable to connect. Please check your internet connection.\n1) Try again.\n2) Try again via IIT-KGP proxy\n3) Try again via manual proxy\n4) Exit.\nPl enter your choice: "
         choicest=gets
-        if (choicest[0]=="y" || choicest[0]=="Y")
+        if (choicest[0]=="1")
+          proxy_str=""
+          next
+        elsif (choicest[0]=="2")
           proxy_str="--proxy 10.3.100.207:8080"
+          next
+        elsif (choicest[0]=="3")
+          puts "Enter proxy and port separated by a colon: "
+          proxyhere=gets
+          proxy_str="--proxy "+proxyhere
+          next
+        else
+          exit
         end
-        next
     end
       if (auth['message']=="Bad credentials")
             begin
