@@ -6,7 +6,7 @@ def github()
   require 'fileutils'
   FileUtils::mkdir_p 'social-media/github/data'
   userdetails=[]
-  github_login(userdetails)
+  proxy_str=github_login(userdetails)
   uid=userdetails[0]
   pwd=userdetails[1]
   begin
@@ -32,7 +32,7 @@ def github()
   counthere=1
   repos=[]
   while(1)
-    system ("curl -s -u \""+uid+":"+pwd+"\" \"https://api.github.com/user/repos?per_page=#{numinpage}&page=#{counthere}\" -o social-media/github/data/repos.json")
+    system ("curl -s "+proxy_str+" -u \""+uid+":"+pwd+"\" \"https://api.github.com/user/repos?per_page=#{numinpage}&page=#{counthere}\" -o social-media/github/data/repos.json")
     json = File.read('social-media/github/data/repos.json')
     temprepo=JSON.parse(json)
     break if temprepo==[]
@@ -62,7 +62,7 @@ def github()
   counthere=1
   foll=[]
   while(1)
-    system ("curl -s -u \""+uid+":"+pwd+"\" \"https://api.github.com/user/followers?per_page=#{numinpage}&page=#{counthere}\" -o social-media/github/data/followers.json")
+    system ("curl -s  "+proxy_str+" -u \""+uid+":"+pwd+"\" \"https://api.github.com/user/followers?per_page=#{numinpage}&page=#{counthere}\" -o social-media/github/data/followers.json")
     json = File.read('social-media/github/data/followers.json')
     tempfoll=JSON.parse(json)
     break if tempfoll==[]
@@ -81,7 +81,7 @@ def github()
   counthere=1
   issues=[]
   while(1)
-    system ("curl -s -u \""+uid+":"+pwd+"\" \"https://api.github.com/issues?per_page=#{numinpage}&page=#{counthere}\" -o social-media/github/data/issues.json")
+    system ("curl -s  "+proxy_str+" -u \""+uid+":"+pwd+"\" \"https://api.github.com/issues?per_page=#{numinpage}&page=#{counthere}\" -o social-media/github/data/issues.json")
     json = File.read('social-media/github/data/issues.json')
     tempissues=JSON.parse(json)
     break if tempissues==[]
@@ -113,7 +113,7 @@ def github()
       counthere=1
       stars=[]
       while(1)
-        system ("curl -s -u \""+uid+":"+pwd+"\" \"https://api.github.com/repos/"+name+"/"+text+"/stargazers?per_page=#{numinpage}&page=#{counthere}\" -o social-media/github/data/data.json")
+        system ("curl -s  "+proxy_str+" -u \""+uid+":"+pwd+"\" \"https://api.github.com/repos/"+name+"/"+text+"/stargazers?per_page=#{numinpage}&page=#{counthere}\" -o social-media/github/data/data.json")
         json = File.read("social-media/github/data/data.json")
         tempstars=JSON.parse(json)
         break if tempstars==[]
@@ -140,7 +140,7 @@ def github()
       counthere=1
       forks=[]
       while(1)
-        system ("curl -s -u \""+uid+":"+pwd+"\" \"https://api.github.com/repos/"+name+"/"+text+"/forks?per_page=#{numinpage}&page=#{counthere}\" -o social-media/github/data/data.json")
+        system ("curl -s  "+proxy_str+" -u \""+uid+":"+pwd+"\" \"https://api.github.com/repos/"+name+"/"+text+"/forks?per_page=#{numinpage}&page=#{counthere}\" -o social-media/github/data/data.json")
         json = File.read("social-media/github/data/data.json")
         tempforks=JSON.parse(json)
         break if tempforks==[]
@@ -166,7 +166,7 @@ def github()
       counthere=1
       pulls=[]
       while(1)
-        system ("curl -s -u \""+uid+":"+pwd+"\" \"https://api.github.com/repos/"+name+"/"+text+"/pulls?per_page=#{numinpage}&page=#{counthere}\" -o social-media/github/data/data.json")
+        system ("curl -s  "+proxy_str+" -u \""+uid+":"+pwd+"\" \"https://api.github.com/repos/"+name+"/"+text+"/pulls?per_page=#{numinpage}&page=#{counthere}\" -o social-media/github/data/data.json")
         json = File.read("social-media/github/data/data.json")
         temppulls=JSON.parse(json)
         break if temppulls==[]
@@ -193,7 +193,7 @@ def github()
       counthere=1
       repissues=[]
       while(1)
-        system ("curl -s -u \""+uid+":"+pwd+"\" \"https://api.github.com/repos/"+name+"/"+text+"/issues?per_page=#{numinpage}&page=#{counthere}\" -o social-media/github/data/data.json")
+        system ("curl -s  "+proxy_str+" -u \""+uid+":"+pwd+"\" \"https://api.github.com/repos/"+name+"/"+text+"/issues?per_page=#{numinpage}&page=#{counthere}\" -o social-media/github/data/data.json")
         json = File.read("social-media/github/data/data.json")
         temprepissues=JSON.parse(json)
         break if temprepissues==[]
@@ -515,7 +515,7 @@ def github()
         mailtext+="<br><br>Have an awesome day!<br><br>Yours sincerely,<br><br>GitHub Notifier (<a href=\"https://github.com/athityakumar/ruby-notificator/\">View source code on GitHub</a>)."
         myfile.write(mailtext)
         myfile.close
-        system("sudo sendmail -f #{userdetails[3]} #{userdetails[3]} < social-media/github/data/mail.txt")
+        system("sudo sendmail  "+proxy_str+" -f #{userdetails[3]} #{userdetails[3]} < social-media/github/data/mail.txt")
         puts "Mail sent."
       end
     end

@@ -3,6 +3,7 @@ require 'io/console'
 require 'fileutils'
 def github_login(a)
   system("clear")
+  proxy_str=""
   puts "\nGithub Notifier\n"
   while (1)
   flagv=0
@@ -29,14 +30,18 @@ def github_login(a)
     a[0]=credentials[0][0,(credentials[0].length)-1]
     a[1]=credentials[1][0,(credentials[1].length)-1]
     puts "\nAuthenticating..."
-    system ("curl -s -u \""+a[0]+":"+a[1]+"\" https://api.github.com/user -o social-media/github/data/auth.json")
+    system ("curl -s "+proxy_str+" -u \""+a[0]+":"+a[1]+"\" https://api.github.com/user -o social-media/github/data/auth.json")
     begin
       json = File.read('social-media/github/data/auth.json')
       auth = JSON.parse(json)
     rescue
         system("clear")
-        puts "Unable to connect. Please check your internet connection and try again."
-        exit
+        puts "Unable to connect. Please check your internet connection and try again.\nWould you like to add IIT-KGP proxy?"
+        choicest=gets
+        if (choicest[0]=="y" || choicest[0]=="Y")
+          proxy_str="--proxy 10.3.100.207:8080"
+        end
+        next
     end
       if (auth['message']=="Bad credentials")
             begin
@@ -69,4 +74,5 @@ def github_login(a)
       end
     end
   end
+  return proxy_str
 end
