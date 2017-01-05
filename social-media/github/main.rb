@@ -240,18 +240,14 @@ def github()
       textview_h+="You have update in a pull request:"
       textview_h+="- #{datanew[countout]['title']} by #{datanew[countout]['login']}. (#{datanew[countout]['url']})"
       if(oldnotifications.find {|x| x["url"] == datanew[countout]['url'] }==nil)
-        textview_h+=" * NEW\n"
-      else
-        textview_h+="\n"
+        textview_h+=" * NEW"
       end
     end
     if (type=="issues")
       textview_h+="You have update in an issue:"
       textview_h+="- #{datanew[countout]['title']} by #{datanew[countout]['login']}. (#{datanew[countout]['url']})"
       if(oldnotifications.find {|x| x["url"] == datanew[countout]['url'] }==nil)
-        textview_h+=" * NEW\n"
-      else
-        textview_h+="\n"
+        textview_h+=" * NEW"
       end
     end
     countout+=1
@@ -314,6 +310,7 @@ def github()
     end
   end
   textview+=textview_n; texthtml+=textview_n
+  textview_n=""
 
   if (oldfoll & foll != oldfoll)
     textview+= "\nYou have lost some followers:\n\n\n"
@@ -330,6 +327,7 @@ def github()
     end
   end
   textview+=textview_n; texthtml+=textview_n
+  textview_n=""
 
   if (oldissues & issues != issues)
     textview+= "\nNew issues have been assigned to you:\n\n"
@@ -370,7 +368,7 @@ def github()
     end
   end
   textview+=textview_n; texthtml+=textview_n
-
+  textview_n=""
 
   if (oldissues & issues != oldissues)
     textview+= "\nSome issues have been unassigned from you:\n\n\n"
